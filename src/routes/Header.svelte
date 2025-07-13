@@ -1,5 +1,9 @@
 <script>
     import { goto } from "$app/navigation";
+	import { user, isLoggedIn } from '$lib/stores/meowtime.js';
+
+	$: currentUser = $user;
+	$: loggedIn = $isLoggedIn;
 </script>
 
 <nav id="navbar">
@@ -9,7 +13,16 @@
 		<a href="/leaderboard" id="nav-leaderboard">Leaderboard</a>
 		<div id="nav-separator"></div>
 
-		<button id="nav-login-btn" onclick={() => goto("/login")}>Login</button>
+		{#if loggedIn}
+			<a href="/dashboard" id="nav-dashboard">Dashboard</a>
+			<div id="nav-separator"></div>
+			<button id="nav-logout-btn" onclick={() => {
+				currentUser.logout();
+				goto('/login');
+			}}>Logout</button>
+		{:else}
+			<button id="nav-login-btn" onclick={() => goto("/login")}>Login</button>
+		{/if}
 	</div>
 </nav>
 

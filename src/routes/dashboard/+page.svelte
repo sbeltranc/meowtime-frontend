@@ -1,5 +1,12 @@
 <script>
+	import { goto } from '$app/navigation';
 	import { Chart } from '@flowbite-svelte-plugins/chart';
+		
+    import { notify } from '$lib/components/notifications.js';
+    import { user, isLoggedIn } from '$lib/stores/meowtime.js';
+
+	$: currentUser = $user;
+	$: loggedIn = $isLoggedIn;
 
 	let lineChartOptions = {
 		chart: {
@@ -130,6 +137,14 @@
 		{ title: 'Lines of Code Written', value: '15,234', change: '+23%', trend: 'up' },
 		{ title: 'Projects Worked', value: '8', change: '+2', trend: 'up' }
 	];
+
+	// Checking if the user is logged in (lol)
+	if (!isLoggedIn) {
+		notify.info('you must be logged in to access the dashboard', {
+			duration: 5000
+		});
+		goto("/login");
+	}
 </script>
 
 <svelte:head>
