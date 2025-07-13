@@ -1,4 +1,5 @@
 <script>
+	import NotificationContainer from '$lib/components/NotificationContainer.svelte';
 	import Header from './Header.svelte';
 	import '../app.css';
 
@@ -7,14 +8,21 @@
 
 <div class="app">
 	<Header />
+	<NotificationContainer />
 
 	<main>
 		{@render children()}
 	</main>
-
-	<footer>
-		<p>
-			visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to learn about SvelteKit
+	
+	<div id="footer-container">
+		<p id="footer">
+			made with ❤️ for
+			<a href="https://hackclub.com/" target="_blank">hackers,</a> by a <a href="https://github.com/sbeltranc/" target="_blank">hacker</a>
 		</p>
-	</footer>
+		<div id="footer-links">
+			<a href="/privacy">Privacy</a>
+			<p>•</p>
+			<a href="/terms">Terms</a>
+		</div>
+	</div>
 </div>

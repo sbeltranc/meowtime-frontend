@@ -1,2 +1,677 @@
 @import 'tailwindcss';
 @import '@fontsource/fira-mono';
+@source '../node_modules/@flowbite-svelte-plugins/chart/dist';
+
+@font-face {
+  font-family: 'Bakso Daging';
+  src: URL('/assets/fonts/sunday_walk.otf') format('truetype');
+}
+
+:root {
+  --em-color: #6b8db5;
+  --color: #4a6b85;
+  --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+
+* {
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  background-color: #f0f4f8;
+  scrollbar-color: #60606060 #00000000;
+  scrollbar-width: 2px;
+}
+
+body {
+  background-color: #f0f4f8;
+  background-image: url("https://www.transparenttextures.com/patterns/billie-holiday.png");
+  font-family: var(--font-stack);
+  line-height: 1.6;
+  color: var(--color);
+  min-height: 100%;
+}
+
+body.attribution_open {
+  background-color: #d6e3f0;
+}
+
+p, b, i, span {
+  color: var(--color);
+}
+
+#hero-title {
+  font-family: "Bakso Daging";
+  text-transform: lowercase;
+}
+
+h1, h2, h3 {
+  color: var(--color);
+}
+
+h4, h5, h6, a {
+  color: var(--em-color);
+}
+
+h1 {
+  font-size: 48px;
+}
+
+#attribution_container h2 {
+  color: var(--em-color);
+  margin-bottom: 16px;
+}
+
+#attribution_container p {
+  font-size: 12px;
+}
+
+#attribution_container p:last-of-type {
+  margin-bottom: 8px;
+}
+
+a {
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #7ba3d0;
+  cursor: pointer;
+}
+
+hr {
+  border: none;
+  height: 2px;
+  background-color: #4a6b8580;
+  border-radius: 2px;
+  margin: 8px 0;
+  width: 150%;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+  padding: 80px 20px 20px 20px; /* top padding for navbar, side padding for mobile */
+}
+
+#navbar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background-color: #f0f4f8;
+  background-image: url("https://www.transparenttextures.com/patterns/billie-holiday.png");
+  border: 2px solid #4a6b8540;
+  border-radius: 50px;
+  padding: 12px 30px;
+  box-shadow: 0 4px 20px rgba(74, 107, 133, 0.15);
+  backdrop-filter: blur(10px);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+#navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 300px;
+  gap: 16px;
+}
+
+#hero-title {
+  color: var(--color);
+  text-align: center;
+}
+
+#silly-reasons {
+  margin-top: 2rem;
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#silly-reasons h3 {
+  color: var(--em-color);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+#silly-reasons ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+#silly-reasons li {
+  margin: 0.8rem 0;
+  padding: 1rem;
+  background-color: rgba(107, 141, 181, 0.08);
+  font-size: 0.95rem;
+  position: relative;
+  box-shadow: 3px 4px 8px rgba(74, 107, 133, 0.15);
+  transform: rotate(-0.5deg);
+  border-radius: 16px;
+}
+
+#silly-reasons li:nth-child(even) {
+  transform: rotate(0.7deg);
+  background-color: rgba(107, 141, 181, 0.12);
+}
+
+#silly-reasons li:nth-child(3n) {
+  transform: rotate(-0.3deg);
+}
+
+#silly-reasons li:hover {
+  background-color: rgba(107, 141, 181, 0.2);
+  transform: translateY(-2px) rotate(0deg);
+  transition: all 0.3s ease;
+  box-shadow: 5px 8px 15px rgba(74, 107, 133, 0.25);
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  #silly-reasons ul {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+#logo {
+  font-size: 24px;
+  margin: 0;
+  color: var(--color);
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  font-family: "Bakso Daging";
+  text-transform: lowercase;
+  font-weight: normal;
+}
+
+#logo:hover {
+  color: var(--em-color);
+}
+
+#nav-separator {
+  width: 1px;
+  height: 20px;
+  background-color: #4a6b8540;
+  flex-shrink: 0;
+}
+
+#nav-login-btn {
+  min-width: 70px;
+  height: 32px;
+  font-size: 14px;
+  padding: 0 12px;
+  margin: 0;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#nav-leaderboard {
+  font-size: 14px;
+  color: var(--color);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  font-family: var(--font-stack);
+}
+
+#nav-leaderboard:hover {
+  color: var(--em-color);
+  background-color: rgba(107, 141, 181, 0.1);
+}
+
+#back {
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  font-size: 12px;
+}
+
+#back_icon {
+  margin-right: 4px;
+}
+
+#options_container {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+}
+
+#options_container p {
+  font-size: 12px;
+}
+
+#options_container p:hover {
+  cursor: pointer;
+  color: var(--em-color);
+}
+
+#music_toggle a, #sound_toggle_a {
+  text-decoration: none;
+}
+
+#sound_toggle {
+  position: relative;
+  right: 2px;
+}
+
+#mutant_container {
+  display: flex;
+  width: 400px;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#mutant_container.recenter {
+  position: relative;
+  left: 28px;
+}
+
+#mutant {
+  width: 50px;
+  height: 50px;
+  z-index: 2;
+  user-select: none;
+}
+
+#mutant.clickable:hover {
+  animation: shake 2s;
+  animation-iteration-count: infinite;
+  cursor: pointer;
+}
+
+#mutant_text, #choice_container, #text_entry_container, #image_container, #code_container, #tasks_container {
+  position: relative;
+  transition-timing-function: ease-in-out;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  transition: width 0.5s, height 0.5s, opacity 0.5s;
+}
+
+#mutant_text {
+  height: 50px;
+}
+
+#mutant_text a {
+  color: #47858e;
+  font-weight: bold;
+}
+
+#choice_container {
+  height: 84px;
+}
+
+#text_entry_container {
+  width: 300px;
+  height: 64px;
+}
+
+#text_entry_form {
+  display: flex;
+  flex-direction: column;
+}
+
+#text_entry {
+  outline: none;
+  background: transparent;
+  border: 3px solid #706044;
+  border-radius: 20px;
+  color: var(--color);
+  padding: 10px;
+  width: 300px;
+  height: 40px;
+  font-size: 14px;
+  font-family: var(--font-stack);
+}
+
+#text_entry_form label {
+  font-size: 14px;
+  position: relative;
+  left: 11px;
+  top: 4px;
+}
+
+button {
+  width: 200px;
+  height: 40px;
+  background: transparent;
+  border: 2px solid var(--em-color);
+  border-radius: 25px;
+  color: var(--color);
+  font-size: 16px;
+  margin-bottom: 2px;
+  display: block;
+  user-select: none;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(74, 107, 133, 0.1);
+  font-family: var(--font-stack);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover, #submit_text_entry:hover {
+  cursor: pointer;
+  background-color: var(--em-color);
+  color: #f0f4f8;
+  border-color: var(--em-color);
+  box-shadow: 0 4px 12px rgba(74, 107, 133, 0.3);
+}
+
+button:active {
+  background-color: var(--color);
+  border-color: var(--color);
+  box-shadow: 0 2px 4px rgba(74, 107, 133, 0.2);
+}
+
+.locked_divider {
+  text-transform: uppercase;
+  font-size: 11px;
+  position: relative;
+  margin: 8px 0 0 0;
+  width: 78px;
+  padding: 0 12px;
+  color: #777;
+  letter-spacing: 2px;
+}
+
+.locked_divider::before, .locked_divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background-color: #999;
+}
+
+.locked_divider::before {
+  left: 0;
+}
+
+.locked_divider::after {
+  right: 0;
+}
+
+#gate_divider {
+  width: 223px;
+}
+
+#footer-container {
+  position: relative;
+  margin-top: auto;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+#footer {
+  font-size: 10px;
+  color: var(--em-color);
+  margin-bottom: 4px;
+}
+
+#footer-links {
+  display: flex;
+  gap: 8px;
+  font-size: 9px;
+}
+
+#footer-links a {
+  color: var(--em-color);
+  opacity: 0.8;
+}
+
+#attribution_container {
+  position: absolute;
+  background-color: #f0f4f8;
+  background-image: url("https://www.transparenttextures.com/patterns/billie-holiday.png");
+  width: 40vw;
+  border: 2px solid #4a6b8580;
+  padding: 20px;
+}
+
+#close_attribution {
+  width: 100px;
+  height: 30px;
+  font-size: 14px;
+}
+
+.icon {
+  height: 16px;
+  vertical-align: middle;
+  opacity: 0.75;
+}
+
+.icon-20 {
+  height: 20px;
+  vertical-align: middle;
+  opacity: 0.75;
+}
+
+.task_middot {
+  margin: 0 4px;
+}
+
+.hidden-w {
+  width: 0 !important;
+  opacity: 0 !important;
+}
+
+.hidden-h {
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.dn {
+  display: none !important;
+}
+
+.oh {
+  opacity: 0.5;
+}
+
+.in {
+  pointer-events: none !important;
+}
+
+.w150 {
+  width: 150px !important;  
+}
+
+#login_card {
+  background-color: #f0f4f8;
+  background-image: url("https://www.transparenttextures.com/patterns/billie-holiday.png");
+  border: 2px solid #4a6b8540;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(74, 107, 133, 0.15);
+  backdrop-filter: blur(10px);
+  max-width: 420px;
+  width: 100%;
+}
+
+#login_title {
+  font-family: "Bakso Daging";
+  font-size: 32px;
+  color: var(--color);
+  text-align: center;
+  margin-bottom: 8px;
+  text-transform: lowercase;
+}
+
+#login_subtitle {
+  color: var(--em-color);
+  text-align: center;
+  margin-bottom: 32px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+#login_form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+#email_section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#email_section label {
+  font-size: 14px;
+  color: var(--color);
+  font-weight: 500;
+}
+
+#email {
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px;
+  border: 2px solid #4a6b8540;
+  border-radius: 16px;
+  background-color: rgba(107, 141, 181, 0.05);
+  color: var(--color);
+  font-size: 16px;
+  font-family: var(--font-stack);
+  outline: none;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+#email:focus {
+  border-color: var(--em-color);
+  background-color: rgba(107, 141, 181, 0.1);
+}
+
+#email::placeholder {
+  color: var(--em-color);
+  opacity: 0.6;
+}
+
+#email_btn {
+  width: 100%;
+  height: 48px;
+  background: transparent;
+  border: 2px solid var(--em-color);
+  border-radius: 16px;
+  color: var(--color);
+  font-size: 16px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#email_btn:hover:not(:disabled) {
+  background-color: var(--em-color);
+  color: #f0f4f8;
+  box-shadow: 0 4px 12px rgba(74, 107, 133, 0.3);
+}
+
+#email_btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#login_divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 8px 0;
+}
+
+#login_divider::before,
+#login_divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #4a6b8540;
+}
+
+#login_divider span {
+  padding: 0 16px;
+  color: var(--em-color);
+  font-size: 14px;
+  opacity: 0.7;
+  text-transform: lowercase;
+}
+
+#slack_btn {
+  width: 100%;
+  height: 48px;
+  background-color: #4A154B;
+  border: 2px solid #4A154B;
+  border-radius: 16px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+#slack_btn:hover {
+  background-color: #611f69;
+  border-color: #611f69;
+  box-shadow: 0 4px 12px rgba(74, 21, 75, 0.3);
+}
+
+#slack_icon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 480px) {
+  #login_card {
+    padding: 24px;
+    margin: 0 8px;
+  }
+
+  #login_title {
+    font-size: 28px;
+  }
+}
