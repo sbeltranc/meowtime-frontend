@@ -8,12 +8,11 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		// Use static adapter for client-side only applications
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: 'index.html', // SPA fallback
-			precompress: false,
+			fallback: 'index.html',
+			precompress: true,
 			strict: true
 		})
 	}

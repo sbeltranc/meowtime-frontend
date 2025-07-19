@@ -1,6 +1,15 @@
 <script>
+	import { goto } from '$app/navigation';
+	import { isLoggedIn } from '$lib/stores/meowtime.js';
+
+	$: loggedIn = $isLoggedIn;
+
 	function handleSlackLogin() {
 		window.location.href = `http://localhost:3000/auth-service/slack/login`;
+	}
+
+	if (loggedIn) {
+		goto('/dashboard');
 	}
 </script>
 

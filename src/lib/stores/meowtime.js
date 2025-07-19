@@ -3,7 +3,6 @@ import { browser } from '$app/environment';
 
 const API_BASE_URL = 'http://localhost:3000';
 
-// User state store
 const createUserStore = () => {
   const storedUser = browser ? localStorage.getItem('meowtime_user') : null;
   const initialUser = storedUser ? JSON.parse(storedUser) : null;
@@ -12,7 +11,6 @@ const createUserStore = () => {
 
   return {
     subscribe,
-    /** @param {any} user */
     set: (user) => {
       if (browser) {
         if (user) {
@@ -42,7 +40,6 @@ const createAuthStore = () => {
 
   return {
     subscribe,
-    /** @param {string | null} token */
     setToken: (token) => {
       if (browser) {
         if (token) {
@@ -62,27 +59,18 @@ const createAuthStore = () => {
   };
 };
 
-// Loading state store
 const loading = writable(false);
+const error = writable(null);
 
-// Error state store
-const error = writable(/** @type {string | null} */ (null));
-
-// Create store instances
 export const user = createUserStore();
 export const auth = createAuthStore();
 export { loading, error };
 
-// Derived store for checking if user is logged in
 export const isLoggedIn = derived(
   [user, auth],
   ([$user, $auth]) => !!$user && $auth.isAuthenticated
 );
 
-/**
- * @param {string} endpoint 
- * @param {any} [options]
- */
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
@@ -97,7 +85,7 @@ const apiRequest = async (endpoint, options = {}) => {
   const authState = browser && localStorage.getItem('meowtime_auth_token');
 
   if (authState) {
-    defaultOptions.headers.Authorization = `Bearer ${authState}`;
+    defaultOptions.headers.Authorization = authState;
   }
 
   try {
@@ -111,12 +99,6 @@ const apiRequest = async (endpoint, options = {}) => {
       throw new Error(data.error || `HTTP error! status: ${response.status}`);
     }
 
-    const authHeader = response.headers.get('Authorization');
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      auth.setToken(token);
-    }
-
     return data;    
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
@@ -127,20 +109,13 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 };
 
-// API Functions
 export const api = {
-  /**
-   * Handle Slack OAuth callback
-   * @param {string} code - Authorization code from Slack
-   * @returns {Promise<Object>} User data
-   */
   slackCallback: async (code) => {
     try {
       const data = await apiRequest(`/auth-service/slack/callback?code=${encodeURIComponent(code)}`, {
         method: 'GET',
       });
 
-      // Store user data and auth token if provided
       if (data.id) {
         const userData = {
           id: data.id,
@@ -152,15 +127,10 @@ export const api = {
         };
         
         user.set(userData);
-        
-        // The token is on the Authorization header as Bearer + token
-        // Store the token in auth store
-    
+      }
 
-        // If there's a token in the response, store it
-        if (data.token) {
-          auth.setToken(data.token);
-        }
+      if (data.token) {
+        auth.setToken(data.token);
       }
 
       return data;
@@ -170,10 +140,6 @@ export const api = {
     }
   },
 
-  /**
-   * Logout user
-   * @returns {Promise<void>}
-   */
   logout: async () => {
     try {
       await apiRequest('/auth-service/logout', {
@@ -188,73 +154,117 @@ export const api = {
     }
   },
 
-  /**
-   * Get current user profile
-   * @returns {Promise<Object>} User data
-   */
   getProfile: async () => {
     try {      
-      const storedUser = browser ? localStorage.getItem('meowtime_user') : null
+      const authToken = browser ? localStorage.getItem('meowtime_auth_token') : null;
+      const storedUser = browser ? localStorage.getItem('meowtime_user') : null;
     
-      if (storedUser) {
-        return JSON.parse(storedUser);
+      if (!authToken) {
+        user.clear();
+        auth.clear();
+        throw new Error('User is not authenticated');
       }
 
-      return user
+      auth.setToken(authToken);
+
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        user.set(userData);
+        return userData;
+      }
+
+      const data = await apiRequest('/auth-service/profile', {
+        method: 'GET',
+      });
+
+      if (data.id) {
+        const userData = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          picture: data.picture,
+          teamId: data.team_id,
+          teamName: data.team_name,
+        };
+        
+        user.set(userData);
+        return userData;
+      }
+
+      throw new Error('Invalid profile data');
     } catch (err) {
-      console.error(err || 'Failed to fetch profile');
+      console.error('Failed to fetch profile:', err);
+      user.clear();
+      auth.clear();
       throw err;
     }
   },
 
-  /**
-   * Check if current session is valid
-   * @returns {Promise<boolean>} Session validity
-   */
   validateSession: async () => {
+    // get hte profile to validate the session
     try {
-      await apiRequest('/validate', {
+      const profile = await api.getProfile();
+      if (profile && profile.id) {
+        return true;
+      }
+      return false;
+    }
+    catch (err) {
+      console.error('Session validation failed:', err);
+      user.clear();
+      auth.clear();
+      return false;
+    }
+  },
+
+  /**
+   * Get user's projects
+   * @returns {Promise<any[]>} List of user projects
+   */
+  getMyProjects: async () => {
+    try {
+      const data = await apiRequest('/project-service/my/projects', {
         method: 'GET',
       });
-      return true;
+
+      return data;
     } catch (err) {
-      console.error('Session validation failed:', err);
-      auth.clear();
-      user.clear();
-      return false;
+      console.error('Failed to fetch projects:', err);
+      throw err;
     }
   },
 };
 
-// Helper functions
 export const helpers = {
-  /**
-   * Initialize the auth state on app start
-   */
   init: async () => {
     if (!browser) return;
     
     const token = localStorage.getItem('meowtime_auth_token');
+    const storedUser = localStorage.getItem('meowtime_user');
+    
     if (token) {
       try {
-        // Validate existing session
+        auth.setToken(token);
+        
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          user.set(userData);
+        }
+        
         const isValid = await api.validateSession();
-        if (isValid) {
-          // Try to get current user profile
-          await api.getProfile();
+
+        if (!isValid) {
+          auth.clear();
+          user.clear();
         }
       } catch (err) {
         console.error('Auth initialization failed:', err);
-        // Clear invalid auth state
         auth.clear();
         user.clear();
       }
     }
   },
 
-  /**
-   * Clear all stored data
-   */
   clearAll: () => {
     user.clear();
     auth.clear();
@@ -262,7 +272,6 @@ export const helpers = {
   },
 };
 
-// Auto-initialize when imported
 if (browser) {
   helpers.init();
 }

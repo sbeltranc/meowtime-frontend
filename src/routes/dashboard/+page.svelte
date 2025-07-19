@@ -1,12 +1,46 @@
 <script>
 	import { goto } from '$app/navigation';
 	import { Chart } from '@flowbite-svelte-plugins/chart';
+	import { onMount } from 'svelte';
 		
     import { notify } from '$lib/components/notifications.js';
-    import { user, isLoggedIn } from '$lib/stores/meowtime.js';
+    import { user, isLoggedIn, loading, api } from '$lib/stores/meowtime.js';
 
+	$: isLoading = $loading;
 	$: currentUser = $user;
 	$: loggedIn = $isLoggedIn;
+
+	let initialLoadComplete = false;
+	let alreadySentNotification = false;
+	
+	onMount(() => {
+		const unsubscribe = loading.subscribe(value => {
+			if (!value && !initialLoadComplete) {
+				initialLoadComplete = true;
+				if (!$isLoggedIn) {
+					notify.warning('you must be logged in to access the dashboard', {
+						duration: 5000
+					});
+
+					alreadySentNotification = true;
+					goto("/login");
+				}
+			}
+		});
+
+		return unsubscribe;
+	});
+
+	$: if (initialLoadComplete && !isLoading && !loggedIn) {
+		if (!alreadySentNotification) {
+			alreadySentNotification = true;
+
+			notify.warning('you must be logged in to access the dashboard', {
+				duration: 5000
+			});
+			goto("/login");
+		}
+	}
 
 	let lineChartOptions = {
 		chart: {
@@ -131,20 +165,11 @@
 		]
 	};
 
-	// Stats data
 	let stats = [
 		{ title: 'Total Time Spent', value: '127h 42m', change: '+18%', trend: 'up' },
 		{ title: 'Lines of Code Written', value: '15,234', change: '+23%', trend: 'up' },
 		{ title: 'Projects Worked', value: '8', change: '+2', trend: 'up' }
 	];
-
-	// Checking if the user is logged in (lol)
-	if (!isLoggedIn) {
-		notify.info('you must be logged in to access the dashboard', {
-			duration: 5000
-		});
-		goto("/login");
-	}
 </script>
 
 <svelte:head>
@@ -152,110 +177,118 @@
 </svelte:head>
 
 <div class="dashboard-container">
-	<div class="dashboard-header">
-		<h1>Dashboard</h1>
-		<p class="dashboard-subtitle">
-			Welcome back! Here's what's happening with your data.
-		</p>
-	</div>
-
-	<!-- Stats Grid -->
-	<div class="stats-grid">
-		{#each stats as stat}
-			<div class="stat-card">
-				<div class="stat-header">
-					<h3 class="stat-title">{stat.title}</h3>
-					<span class="stat-change {stat.trend}">
-						{stat.change}
-						{#if stat.trend === 'up'}
-							<svg class="trend-icon" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-							</svg>
-						{:else}
-							<svg class="trend-icon" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-							</svg>
-						{/if}
-					</span>
-				</div>
-				<div class="stat-value">{stat.value}</div>
-			</div>
-		{/each}
-	</div>
-
-	<!-- Charts Grid -->
-	<div class="charts-grid">
-		<!-- Line Chart -->
-		<div class="chart-card large">
-			<div class="chart-header">
-				<h3>User Growth Over Time</h3>
-				<p>Monthly active users and new signups</p>
-			</div>
-			<div class="chart-container">
-				<Chart options={lineChartOptions} />
+	{#if isLoading || !initialLoadComplete}
+		<div class="loading-overlay">
+			<div class="loading-spinner">
+				<div class="spinner"></div>
 			</div>
 		</div>
-
-		<!-- Doughnut Chart -->
-		<div class="chart-card">
-			<div class="chart-header">
-				<h3>Software Usage</h3>
-				<p>Time distribution by the tools you use for your projects</p>
-			</div>
-			<div class="chart-container">
-				<Chart options={doughnutChartOptions} />
-			</div>
+	{:else}
+		<div class="dashboard-header">
+			<h1>Dashboard</h1>
+			<p class="dashboard-subtitle">
+				Welcome back! Here's what's happening with your data.
+			</p>
 		</div>
 
-		<!-- Radar Chart -->
-		<div class="chart-card">
-			<div class="chart-header">
-				<h3>Activity Metrics</h3>
-				<p>Time distribution across activities done regarding your projects</p>
-			</div>
-			<div class="chart-container">
-				<Chart options={radarChartOptions} />
-			</div>
+		<!-- Stats Grid -->
+		<div class="stats-grid">
+			{#each stats as stat}
+				<div class="stat-card">
+					<div class="stat-header">
+						<h3 class="stat-title">{stat.title}</h3>
+						<span class="stat-change {stat.trend}">
+							{stat.change}
+							{#if stat.trend === 'up'}
+								<svg class="trend-icon" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+								</svg>
+							{:else}
+								<svg class="trend-icon" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+								</svg>
+							{/if}
+						</span>
+					</div>
+					<div class="stat-value">{stat.value}</div>
+				</div>
+			{/each}
 		</div>
-	</div>
 
-	<!-- Recent Activity Section -->
-	<div class="activity-section">
-		<div class="activity-header">
-			<h3>Recent Activity</h3>
-			<button class="view-all-button" on:click={() => console.log('View all activity')}>View All</button>
-		</div>
-		<div class="activity-list">
-			<div class="activity-item">
-				<div class="activity-dot"></div>
-				<div class="activity-content">
-					<p class="activity-text">New user registered: john@example.com</p>
-					<span class="activity-time">2 minutes ago</span>
+		<!-- Charts Grid -->
+		<div class="charts-grid">
+			<!-- Line Chart -->
+			<div class="chart-card large">
+				<div class="chart-header">
+					<h3>User Growth Over Time</h3>
+					<p>Monthly active users and new signups</p>
+				</div>
+				<div class="chart-container">
+					<Chart options={lineChartOptions} />
 				</div>
 			</div>
-			<div class="activity-item">
-				<div class="activity-dot"></div>
-				<div class="activity-content">
-					<p class="activity-text">Task "Update dashboard" completed</p>
-					<span class="activity-time">15 minutes ago</span>
+
+			<!-- Doughnut Chart -->
+			<div class="chart-card">
+				<div class="chart-header">
+					<h3>Software Usage</h3>
+					<p>Time distribution by the tools you use for your projects</p>
+				</div>
+				<div class="chart-container">
+					<Chart options={doughnutChartOptions} />
 				</div>
 			</div>
-			<div class="activity-item">
-				<div class="activity-dot"></div>
-				<div class="activity-content">
-					<p class="activity-text">System backup completed successfully</p>
-					<span class="activity-time">1 hour ago</span>
+
+			<!-- Radar Chart -->
+			<div class="chart-card">
+				<div class="chart-header">
+					<h3>Activity Metrics</h3>
+					<p>Time distribution across activities done regarding your projects</p>
 				</div>
-			</div>
-			<div class="activity-item">
-				<div class="activity-dot"></div>
-				<div class="activity-content">
-					<p class="activity-text">Database optimization finished</p>
-					<span class="activity-time">3 hours ago</span>
+				<div class="chart-container">
+					<Chart options={radarChartOptions} />
 				</div>
 			</div>
 		</div>
-	</div>
+
+		<!-- Recent Activity Section -->
+		<div class="activity-section">
+			<div class="activity-header">
+				<h3>Recent Activity</h3>
+				<button class="view-all-button" on:click={() => console.log('View all activity')}>View All</button>
+			</div>
+			<div class="activity-list">
+				<div class="activity-item">
+					<div class="activity-dot"></div>
+					<div class="activity-content">
+						<p class="activity-text">New user registered: john@example.com</p>
+						<span class="activity-time">2 minutes ago</span>
+					</div>
+				</div>
+				<div class="activity-item">
+					<div class="activity-dot"></div>
+					<div class="activity-content">
+						<p class="activity-text">Task "Update dashboard" completed</p>
+						<span class="activity-time">15 minutes ago</span>
+					</div>
+				</div>
+				<div class="activity-item">
+					<div class="activity-dot"></div>
+					<div class="activity-content">
+						<p class="activity-text">System backup completed successfully</p>
+						<span class="activity-time">1 hour ago</span>
+					</div>
+				</div>
+				<div class="activity-item">
+					<div class="activity-dot"></div>
+					<div class="activity-content">
+						<p class="activity-text">Database optimization finished</p>
+						<span class="activity-time">3 hours ago</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -264,6 +297,52 @@
 		margin: 0 auto;
 		padding: 40px 20px 0 20px;
 		width: 100%;
+		position: relative;
+	}
+
+	.loading-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(240, 244, 248, 0.9);
+		backdrop-filter: blur(5px);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+
+	.loading-spinner {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 16px;
+	}
+
+	.spinner {
+		border: 4px solid rgba(74, 107, 133, 0.2);
+		border-left-color: var(--em-color);
+		border-radius: 50%;
+		width: 48px;
+		height: 48px;
+		animation: spin 1s linear infinite;
+	}
+
+	.loading-text {
+		color: var(--color);
+		font-size: 16px;
+		font-weight: 500;
+		margin: 0;
+		font-family: var(--font-stack);
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.dashboard-header {
@@ -465,7 +544,6 @@
 		opacity: 0.7;
 	}
 
-	/* Responsive Design */
 	@media (max-width: 1024px) {
 		.chart-card.large {
 			grid-column: span 1;

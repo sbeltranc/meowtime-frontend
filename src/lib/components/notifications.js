@@ -37,7 +37,6 @@ function addNotification(message, type = 'info', options = {}) {
 
 	notifications.update(items => [...items, notification]);
 
-	// Auto-dismiss after duration (if not persistent)
 	if (duration > 0) {
 		setTimeout(() => {
 			removeNotification(id);
